@@ -10,13 +10,14 @@ create view DaneLotu
 				on pilot.lot_id = loty.id
 	with check option
 
+use samoloty;
 /*
-	Select1
-	Boeing poinformowa³ o wadzie produkcyjnej pewnej czêœci(rodzaj awarii = 36), u¿ytej w modelach 737-900(id=2). 
-	Nale¿y skontrolowæ Linie lotnicze posiadaj¹ce ten model czy naprawi³y samolot.
+	Select(1)
+	Boeing poinformowaÅ‚ o wadzie produkcyjnej pewnej czÄ™Å›ci(rodzaj awarii = 36), uÅ¼ytej w modelach 737-900(id=2). 
+	NaleÅ¼y skontrolowÄ‡ Linie lotnicze posiadajÄ…ce ten model czy naprawiÅ‚y samolot.
 
-	Z³¹czenie
-	Porz¹dkowanie
+	ZÅ‚Ä…czenie
+	PorzÄ…dkowanie
 */
 
 SELECT samoloty.id AS 'samolot_id', nazwa AS 'Linia lotnicza', nr_tel_awaryjny,
@@ -29,30 +30,31 @@ JOIN(select id, nazwa, nr_tel_awaryjny from linie_lotnicze) l
 LEFT JOIN(select id, samolot_id, czy_naprawiono from awarie WHERE rodzaj_awarii = 36) a
 	ON a.samolot_id = samoloty.id
 WHERE samoloty.model_id = 2
-ORDER BY samoloty.linia_lotnicza_id
+ORDER BY samoloty.linia_lotnicza_id;
 
 /*
-	Select2
-	Lista pracowników linii lotniczej(id = 1) z liczb¹ odbytych lotów.
+	Select(2)
+	Lista pracownikÃ³w linii lotniczej(id = 1) z liczbÄ… odbytych lotÃ³w danego pracownika.
 
 	Agregacja
 	Porzadkowanie
 	Podzapytanie
-	Z³¹czenie
+	ZÅ‚Ä…czenie
 */
 
-SELECT osoby.*, (
+SELECT linie_lotnicze.nazwa, osoby.*,  (
 	SELECT COUNT(loty.id) FROM loty
 	JOIN zaloga ON zaloga.lot_id = loty.id AND zaloga.osoba_id = pracownicy.osoba_id
 	) as 'odbyte loty'
-FROM pracownicy, osoby
+FROM pracownicy, osoby, linie_lotnicze
 WHERE osoby.nr_paszportu = pracownicy.osoba_id
+	AND pracownicy.linia_lotnicza_id = linie_lotnicze.id
+	AND linie_lotnicze.id = 1
 ORDER BY [odbyte loty] DESC;
 
-
 /*
-	Select3
-	Iloœæ osób i za³ogi, którzy wsiedli lub wysiedli na lotnisku w Gdañsku pomiêdzy 2007-02-06 10:00:00 i 2007-02-06 20:00:00
+	Select(3)
+	IloÅ›Ä‡ osÃ³b i zaÅ‚ogi, ktÃ³rzy wsiedli lub wysiedli na lotnisku w GdaÅ„sku pomiÄ™dzy 2007-02-06 10:00:00 i 2007-02-06 20:00:00
 
 	Agregacja
 	Podzapytanie
@@ -68,8 +70,8 @@ GROUP BY loty.id, loty.skad, loty.dokad, loty.czas_startu, loty.czas_ladowania;
 
 
 /*
-	Select4
-	Ilosc samolotow danej linii lotniczej
+	Select(4)
+	Ilosc samolotÃ³w naleÅ¼Ä…cych do danej linii lotniczej
 
 	Grupowanie
 */
@@ -80,12 +82,12 @@ WHERE linie_lotnicze.id = samoloty.linia_lotnicza_id
 GROUP BY linie_lotnicze.nazwa;
 
 /*
-	Select5
-	Loty w powietrzu, ich zaloga i il. pasazerow
+	Select(5)
+	Loty w powietrzu, ich zaloga i il. pasaÅ¼erÃ³w
 
 	Agregacja
 	Grupowanie
-	Z³¹czenia
+	ZÅ‚Ä…czenia
 */
 
 SELECT loty.skad, loty.dokad, loty.czas_startu, COUNT(miejsca.id) as 'il. pasazerow', osoby.imie, osoby.nazwisko, zaloga.stanowisko
@@ -98,12 +100,11 @@ GROUP BY loty.id, loty.skad, loty.dokad, loty.czas_startu, loty.czas_ladowania, 
 ORDER BY loty.id, zaloga.stanowisko;
 
 /*
-	Select6
-	Lista linii lotniczych i iloœci¹ posiadanych przez nie modeli samolotów
-
+	Select(6)
+	Lista linii lotniczych i iloÅ›ciÄ… posiadanych przez nie modeli samolotÃ³w
 	Agregacja
 	Grupowanie
-	Z³¹czenia
+	ZÅ‚Ä…czenia
 */
 
 SELECT linie_lotnicze.nazwa AS 'linia lotnicza', CONCAT(producenci.nazwa_firmy, ' ', modele.seria, '-', modele.model) AS 'model samolotu', COUNT(modele.id) AS 'ilosc'
@@ -111,11 +112,12 @@ FROM linie_lotnicze
 LEFT JOIN samoloty ON samoloty.linia_lotnicza_id = linie_lotnicze.id
 JOIN modele ON modele.id = samoloty.model_id
 JOIN producenci ON modele.producent_id = producenci.id
-GROUP BY linie_lotnicze.nazwa, producenci.nazwa_firmy, modele.seria, modele.model;
+GROUP BY linie_lotnicze.nazwa, CONCAT(producenci.nazwa_firmy, ' ', modele.seria, '-', modele.model)
+ORDER BY COUNT(modele.id) DESC;
 
 /*
-	Select7
-	Lista lotów samolotu(id = 2) z informacj¹ o kapitanie lotu.
+	Select(7)
+	Lista lotÃ³w samolotu(id = 2) z informacjÄ… o kapitanie lotu.
 	
 	Widok
 */
