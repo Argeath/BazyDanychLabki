@@ -58,22 +58,22 @@ ORDER BY [odbyte loty] DESC;
 
 	Agregacja
 	Podzapytanie
+	Grupowanie
 */
 
-SELECT loty.id, loty.skad, loty.dokad, loty.czas_startu, loty.czas_ladowania,
+SELECT DISTINCT loty.id, loty.skad, loty.dokad, loty.czas_startu, loty.czas_ladowania,
 (SELECT COUNT(osoba_id) FROM zaloga WHERE zaloga.lot_id = loty.id) as 'ilosc zalogi',
 (SELECT COUNT(osoba_id) FROM miejsca WHERE miejsca.lot_id = loty.id) as 'ilosc pasazerow'
-FROM osoby, zaloga, miejsca, loty
+FROM loty
 WHERE ((loty.skad = 'EPGD' AND loty.czas_startu > '2007-02-06 10:00:00'	   AND loty.czas_startu    < '2007-02-06 20:00:00')
-   OR (loty.dokad = 'EPGD' AND loty.czas_ladowania > '2007-02-06 10:00:00' AND loty.czas_ladowania < '2007-02-06 20:00:00'))
-GROUP BY loty.id, loty.skad, loty.dokad, loty.czas_startu, loty.czas_ladowania;
-
+   OR (loty.dokad = 'EPGD' AND loty.czas_ladowania > '2007-02-06 10:00:00' AND loty.czas_ladowania < '2007-02-06 20:00:00'));
 
 /*
 	Select(4)
 	Ilosc samolotów należących do danej linii lotniczej
 
 	Grupowanie
+	Agregacja
 */
 
 SELECT linie_lotnicze.nazwa, COUNT(samoloty.id) as 'il. samolotow'
@@ -101,7 +101,8 @@ ORDER BY loty.id, zaloga.stanowisko;
 
 /*
 	Select(6)
-	Lista linii lotniczych i ilością posiadanych przez nie modeli samolotów
+	Lista linii lotniczych wraz z ilością posiadanych przez nie modeli samolotów
+	
 	Agregacja
 	Grupowanie
 	Złączenia
